@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const todosAPI = axios.create({
-    baseURL: 'http://localhost:8000/todos',
+    baseURL: 'http://localhost:8000',
 });
 
 export const getTodos = async () => {
