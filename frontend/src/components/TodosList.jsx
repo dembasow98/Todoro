@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import {useQuery, useMutation, useQueryClient} from 'react-query'
 import { addTodo, getTodos, updateTodo, deleteTodo } from '../api/todosAPI'
-import NewTodo from './NewTodo'
+import NewTodo from './Todo'
 
 
 const TodosList = () =>{
@@ -78,18 +78,13 @@ const TodosList = () =>{
         <div className='grid md:grid-cols-2 gap-4'>
             <div className='grid grid-rows-2 gap-2 order-2 md:order-1'>
                 <div className='flex flex-col px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
-                    <h1 className='text-xl text-white text-center'>Your todos</h1>
-                    {todosList}
-                </div>
-                <div className='flex flex-col px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
-                    <h1 className='text-xl text-white text-center'>Completed todos</h1>
+                    <h1 className='text-xl text-white text-center mb-5'>Your todos</h1>
                     {isLoading ? (
                         <div className='text-green-600'>Loading...</div>
                     ) : isError ? (
                         <div className='text-red-600'>Error: {error.message}</div>
                     ) : (
                         <div>
-                            <h1>All Todos</h1>
                             {todos.map((todo, index) => (
                                 <NewTodo
                                     key={index}
@@ -101,9 +96,14 @@ const TodosList = () =>{
                             ))}
                         </div>
                     )}
+                    
+                </div>
+                <div className='flex flex-col px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
+                    <h1 className='text-xl text-white text-center mb-5'>Completed todos</h1>
+                    {todosList}
                 </div>
             </div>
-            <div className='flex flex-col order-1 md:order-2 px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
+            <div className='flex flex-col order-1 max-h-[400px] md:order-2 px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
                 <h1 className='text-xl text-white text-center'>Add todo</h1>
                 <form onSubmit={handleSubmit}>
                     <div class="mb-6">
