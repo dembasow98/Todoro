@@ -11,12 +11,25 @@ const TodosList = () =>{
 
     const [title, setTitle] = React.useState('')
     const [description, setDescription] = React.useState('')
-    
+
+    //Create a new todo from the title and description
+    const [newTodo, setNewTodo] = React.useState({
+        title: title,
+        description: description,
+    })
     
 
     const queryClient = useQueryClient();
 
-    const {data:todos, isLoading, isError, error} = useQuery('todos', getTodos);
+    
+    const {
+        isLoading,
+        isError,
+        error,
+        data: todos
+    } = useQuery('todos', getTodos, {
+        select: data => data.sort((a, b) => b.id - a.id)
+    })
 
 
     //Cache invalidation (Integrate the axios request methods with react-query)
@@ -26,6 +39,8 @@ const TodosList = () =>{
             queryClient.invalidateQueries('todos');
         }
     });
+
+    
     const {mutate: updateTodoMutation} = useMutation(updateTodo, {
         onSuccess: () => {
             // Invalidate and refetch
@@ -44,33 +59,24 @@ const TodosList = () =>{
         e.preventDefault();
 
         // Add the new todo to the list
-        addTodoMutation.mutate({title: title, description: description, completed: false});
+        addTodoMutation.mutate({userId:1, todo:newTodo, completed: false});
 
         // Reset the input field
+        
+
+        setNewTodo({
+            title: '',
+            description: '',
+        });
         setTitle('');
         setDescription('');
     }
 
-    //let todosList = JSON.stringify(todos)
-    let todosList;
-    if (isLoading) {
-        todosList = <div className='text-green-600'>Loading...</div>
-    } else if (isError) {
-        todosList = <div className='text-red-600'>Error: {error.message}</div>
-    } else {
-        todosList = JSON.stringify(todos);
-        {/*<div>
-            {todos.map((todo, index) => (
-                <NewTodo
-                    key={index}
-                    index={index}
-                    todo={todo}
-                    updateTodo={updateTodoMutation}
-                    deleteTodo={deleteTodoMutation}
-                />
-            ))}
-            </div>*/}
+    const handleUpdate = (id, title, description, completed) => {
+        // Update the todo
+        updateTodoMutation.mutate({id: id, title: title, description: description, completed: completed});
     }
+
 
   return (
 
@@ -86,6 +92,7 @@ const TodosList = () =>{
                     ) : (
                         <div>
                             {todos.map((todo, index) => (
+                                !todo.completed&&
                                 <NewTodo
                                     key={index}
                                     index={index}
@@ -100,7 +107,24 @@ const TodosList = () =>{
                 </div>
                 <div className='flex flex-col px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
                     <h1 className='text-xl text-white text-center mb-5'>Completed todos</h1>
-                    {todosList}
+                    {isLoading ? (
+                        <div className='text-green-600'>Loading...</div>
+                    ) : isError ? (
+                        <div className='text-red-600'>Error: {error.message}</div>
+                    ) : (
+                        <div>
+                            {todos.map((todo, index) => (
+                                todo.completed&&
+                                <NewTodo
+                                    key={index}
+                                    index={index}
+                                    todo={todo}
+                                    updateTodoMutation={updateTodoMutation}
+                                    deleteTodoMutation={deleteTodoMutation}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
             <div className='flex flex-col order-1 max-h-[400px] md:order-2 px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
@@ -115,7 +139,6 @@ const TodosList = () =>{
                         <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Description</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                         id="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="I will go for running today at 15:00 pm."></textarea>
-                        
                     </div>
                     <button type="submit" class="text-white mb-4 right-0 float-right px-10 py-3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Go</button>
                 </form>
