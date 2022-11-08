@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react'
+import React from 'react'
 import {useQuery, useMutation, useQueryClient} from 'react-query'
 import { addTodo, getTodos, updateTodo, deleteTodo } from '../api/todosAPI'
-import NewTodo from './Todo'
+
+import Todo from './Todo'
 
 
 const TodosList = () =>{
@@ -9,14 +10,17 @@ const TodosList = () =>{
 
     //Each todo has title, description, isCompleted, and id
 
-    const [title, setTitle] = React.useState('')
-    const [description, setDescription] = React.useState('')
 
     //Create a new todo from the title and description
     const [newTodo, setNewTodo] = React.useState({
-        title: title,
-        description: description,
+        title: '',
+        description: '',
     })
+
+    const changeHandler = e => {
+        setNewTodo({...newTodo, [e.target.name]: e.target.value})
+        //console.log(newTodo);
+    }
     
 
     const queryClient = useQueryClient();
@@ -33,7 +37,7 @@ const TodosList = () =>{
 
 
     //Cache invalidation (Integrate the axios request methods with react-query)
-    const {mutate: addTodoMutation} = useMutation(addTodo, {
+    const addTodoMutation = useMutation(addTodo, {
         onSuccess: () => {
             // Invalidate and refetch
             queryClient.invalidateQueries('todos');
@@ -41,13 +45,16 @@ const TodosList = () =>{
     });
 
     
-    const {mutate: updateTodoMutation} = useMutation(updateTodo, {
+    const  updateTodoMutation = useMutation(updateTodo, {
         onSuccess: () => {
             // Invalidate and refetch
             queryClient.invalidateQueries('todos');
+
         }
     });
-    const {mutate: deleteTodoMutation} = useMutation(deleteTodo, {
+
+
+    const  deleteTodoMutation = useMutation(deleteTodo, {
         onSuccess: () => {
             // Invalidate and refetch
             queryClient.invalidateQueries('todos');
@@ -59,24 +66,20 @@ const TodosList = () =>{
         e.preventDefault();
 
         // Add the new todo to the list
-        addTodoMutation.mutate({userId:1, todo:newTodo, completed: false});
+        addTodoMutation.mutate({userId:1, title:newTodo.title, description:newTodo.description, completed: false});
 
-        // Reset the input field
-        
-
+        // Reset the new todo form
         setNewTodo({
             title: '',
             description: '',
         });
-        setTitle('');
-        setDescription('');
+        
+        //Empty the input fields after submitting
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
     }
-
-    const handleUpdate = (id, title, description, completed) => {
-        // Update the todo
-        updateTodoMutation.mutate({id: id, title: title, description: description, completed: completed});
-    }
-
+   
+    
 
   return (
 
@@ -93,12 +96,12 @@ const TodosList = () =>{
                         <div>
                             {todos.map((todo, index) => (
                                 !todo.completed&&
-                                <NewTodo
+                                <Todo
                                     key={index}
                                     index={index}
                                     todo={todo}
-                                    updateTodo={updateTodoMutation}
-                                    deleteTodo={deleteTodoMutation}
+                                    updateTodoMutation={updateTodoMutation}
+                                    deleteTodoMutation={deleteTodoMutation}
                                 />
                             ))}
                         </div>
@@ -113,11 +116,10 @@ const TodosList = () =>{
                         <div className='text-red-600'>Error: {error.message}</div>
                     ) : (
                         <div>
-                            {todos.map((todo, index) => (
+                            {todos.map((todo) => (
                                 todo.completed&&
-                                <NewTodo
-                                    key={index}
-                                    index={index}
+                                <Todo
+                                    key={todo.id}
                                     todo={todo}
                                     updateTodoMutation={updateTodoMutation}
                                     deleteTodoMutation={deleteTodoMutation}
@@ -130,17 +132,17 @@ const TodosList = () =>{
             <div className='flex flex-col order-1 max-h-[400px] md:order-2 px-5 py-5 rounded-xl  bg-slate-300 dark:bg-slate-900'>
                 <h1 className='text-xl text-white text-center'>Add todo</h1>
                 <form onSubmit={handleSubmit}>
-                    <div class="mb-6">
-                        <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Title</label>
-                        <input value={title} onChange={(e) => setTitle(e.target.value)}
-                        type="text" id="title" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Go for Running" required/>
+                    <div className="mb-6">
+                        <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Title</label>
+                        <input name='title' onChange={changeHandler}
+                        type="text" id="title" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Go for Running" required/>
                     </div>
-                    <div class="mb-6">
-                        <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Description</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                        id="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="I will go for running today at 15:00 pm."></textarea>
+                    <div className="mb-6">
+                        <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Description</label>
+                        <textarea name='description' onChange={changeHandler}
+                        id="description" rows="4" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="I will go for running today at 15:00 pm."></textarea>
                     </div>
-                    <button type="submit" class="text-white mb-4 right-0 float-right px-10 py-3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Go</button>
+                    <button type="submit" className="text-white mb-4 right-0 float-right px-10 py-3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Go</button>
                 </form>
             </div>
         </div>
